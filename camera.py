@@ -25,3 +25,9 @@ while True:
 
     # Обнаружение туловища
     (rects, weights) = hog.detectMultiScale(frame, winStride=(4, 4), padding=(8, 8), scale=1.05)
+
+    detections = []
+    if len(faces) > 0:
+        detections.extend(faces)
+    if len(rects) > 0:
+        detections.extend(np.array([[x, y, w, h] for (x, y, w, h) in rects]))
