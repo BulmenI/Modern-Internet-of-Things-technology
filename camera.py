@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import datetime
 
 # Загрузка каскадного классификатора для лиц
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
@@ -14,6 +15,12 @@ human_count = 0
 show_count = False 
 display_count = 0 
 danger_activated = False 
+
+log_filename = datetime.datetime.now().strftime("%Y-%m-%d") + ".log"
+
+def write_log(filename, message):
+    with open(filename, "a") as log_file:
+        log_file.write(f"{datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')} - {message}\n")
 
 while True:
     # Чтение кадра и преобразование в оттенки серого
@@ -31,7 +38,8 @@ while True:
         detections.extend(faces)
     if len(rects) > 0:
         detections.extend(np.array([[x, y, w, h] for (x, y, w, h) in rects]))
-# Обработка обнаружений
+
+    # Обработка обнаружений
     if len(detections) > 0:
         is_human = False 
         for (x, y, w, h) in detections:
@@ -48,6 +56,8 @@ while True:
             display_count += 1 
             if display_count >= 1000: 
                 danger_activated = True
+            if not show_count:
+                write_log(log_filename, f"Human detected. Total humans: {human_count}, Display Count: {display_count}")
             for (x, y, w, h) in detections:
                 cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
@@ -73,6 +83,7 @@ while True:
     cv2.imshow('Video', frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
+        write_log(log_filename, f"Program closed. Final humans count: {human_count}, Final Display Count: {display_count}") # Лог при закрытии
         break
 
 video_capture.release()
